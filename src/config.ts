@@ -23,4 +23,9 @@ export const config = {
     },
     messageTTL: 60000,
   },
+  max_queue_length: 1000,
+  min_queue_length: 100,
+  max_workers: 1,
+  min_workers: 1,
+  check_interval: 1000 * 60 * 1,
 };

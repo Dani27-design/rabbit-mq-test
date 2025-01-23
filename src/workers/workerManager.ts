@@ -4,12 +4,6 @@ import { startWorker } from "./index"; // Import worker logic
 import amqp from "amqplib"; // Import amqplib to interact with RabbitMQ
 import { config } from "../config";
 
-const MAX_QUEUE_LENGTH = 200; // Threshold to add workers
-const MIN_QUEUE_LENGTH = 100; // Threshold to remove workers
-const MAX_WORKERS = 10; // Maximum workers per marketplace
-const MIN_WORKERS = 1; // Minimum workers per marketplace
-const CHECK_INTERVAL = 1000 * 60 * 1; // Interval to check the queue length (ms)
-
 export class WorkerManager {
   private marketplaces: string[];
   private diedWorkers: Map<number, string>; // Map to track dead workers
@@ -62,7 +56,7 @@ export class WorkerManager {
         this.marketplaces.forEach((marketplace) => {
           this.checkQueueLengthAndAdjustWorkers(marketplace);
         });
-      }, CHECK_INTERVAL);
+      }, config.check_interval);
     } else {
       // Start worker logic in child process
       process.on("message", (marketplace: string) => {
@@ -87,14 +81,14 @@ export class WorkerManager {
 
     console.log(`${marketplace} Queue Length : ${queueLength}`);
 
-    if (queueLength > MAX_QUEUE_LENGTH && currentWorkerCount < MAX_WORKERS) {
+    if (queueLength > config.max_queue_length && currentWorkerCount < config.max_workers) {
       this.forkWorker(
         marketplace,
         `Adding worker for scaling up. Queue Length : ${queueLength}. Active Workers : ${currentWorkerCount}`
       );
     } else if (
-      queueLength < MIN_QUEUE_LENGTH &&
-      currentWorkerCount > MIN_WORKERS
+      queueLength < config.min_queue_length &&
+      currentWorkerCount > config.min_workers
     ) {
       this.removeWorker(marketplace, `Removing worker for scaling down. Queue Length : ${queueLength}. Active Workers : ${currentWorkerCount}`);
     }
