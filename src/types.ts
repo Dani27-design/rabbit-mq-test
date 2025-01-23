@@ -22,5 +22,5 @@ export interface Order {
   marketplace: "lazada" | "shopee" | "tokopedia";
   state: OrderState;
   // firebase reference field
-  account: FirebaseFirestore.DocumentReference;
+  account?: FirebaseFirestore.DocumentReference;
 }

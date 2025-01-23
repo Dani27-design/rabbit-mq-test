@@ -12,7 +12,7 @@ export class TokopediaOrderProcessor extends BaseOrderProcessor {
 
   async processOrder(currentState: string, order: Order): Promise<void> {
     try {
-      const orderDetail = await this.tokopediaAPI.getOrderDetail(order?.account?.id, order.ordersn);
+      const orderDetail = await this.tokopediaAPI.getOrderDetail(order?.account?.id ?? "", order.ordersn);
 
       switch (currentState) {
         case "UNPAID":
