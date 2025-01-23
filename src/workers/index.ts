@@ -1,28 +1,24 @@
-import cluster from "cluster";
-import os from "os";
 import { OrderConsumer } from "../consumers/OrderConsumer";
 
-const marketplaces = ["shopee", "tokopedia", "lazada"];
-const numCPUs = os.cpus().length;
+export const startWorker = async (marketplace: any) => {
+  console.log(`Worker ${process.pid} started for marketplace: ${marketplace}`);
 
-if (cluster.isPrimary) {
-  console.log(`Primary process ${process.pid} is running`);
+  const consumer = new OrderConsumer(marketplace);
+  try {
+    await consumer.connect();
+    console.log(
+      `Worker ${process.pid} connected to RabbitMQ for marketplace: ${marketplace}`
+    );
+  } catch (error) {
+    console.error(
+      `Worker ${process.pid} failed for marketplace: ${marketplace}`,
+      error
+    );
 
-  for (let i = 0; i < numCPUs; i++) {
-    cluster.fork();
+    // Notify the parent process about the failure
+    if (process.send) {
+      process.send({ status: "dead", marketplace });
+    }
+    process.exit(1);
   }
-
-  cluster.on("exit", (worker, code, signal) => {
-    console.log(`Worker ${worker.process.pid} died. Restarting...`);
-    cluster.fork();
-  });
-} else {
-  marketplaces.forEach((marketplace:any) => {
-    console.log(`Worker ${process.pid} listening for marketplace: ${marketplace}`);
-    const consumer = new OrderConsumer(marketplace);
-    consumer.connect().catch((error) => {
-      console.error(`Error starting consumer for ${marketplace}:`, error);
-      process.exit(1);
-    });
-  });
-}
+};

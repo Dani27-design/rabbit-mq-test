@@ -1,6 +1,6 @@
 import amqp from "amqplib";
-import { config } from "./config";
-import { Order } from "./types";
+import { config } from "../config";
+import { Order } from "../types";
 
 class OrderPublisher {
   private channel: amqp.Channel | null = null;
